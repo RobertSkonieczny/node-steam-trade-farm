@@ -1,0 +1,21 @@
+{
+    "accounts": {
+        "account1": {
+            "shared_secret": "",
+            "identity_secret": "",
+            "username": "",
+            "password": "",
+            "tradelink": ""
+        },
+        "account2": {
+            "shared_secret": "",
+            "identity_secret": "",
+            "username": "",
+            "password": "",
+            "tradelink": ""
+        }
+    },
+    "config": {
+        "sleep_time": 5
+    }
+}
