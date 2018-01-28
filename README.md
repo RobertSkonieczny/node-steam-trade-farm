@@ -39,8 +39,11 @@ Once this is complete type the following into Command Prompt.
 Type these 3 commands
 
 npm install --global node-gyp
+
 npm --add-python-to-path='true' --debug install --global windows-build-tools
+
 npm install --global --production windows-build-tools
+
 
 ```
 cd steam-trade-farm
