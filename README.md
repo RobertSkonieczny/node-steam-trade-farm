@@ -35,6 +35,7 @@ After this make way to this directory, and drop in the code.
 Once this is complete type the following into Command Prompt.
 
 ***************** IF YOU GET AN ISSUE WITH NPM INSTALL SLEEP ********************
+
 Type these 3 commands
 
 npm install --global node-gyp
