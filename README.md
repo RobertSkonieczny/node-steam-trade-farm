@@ -27,12 +27,19 @@ npm install steam-tradeoffer-manager
 npm install steamcommunity
 npm install steam-totp
 npm install fs
-npm install sleep
+npm install sleep 
 
 ```
 
 After this make way to this directory, and drop in the code.
 Once this is complete type the following into Command Prompt.
+
+***************** IF YOU GET AN ISSUE WITH NPM INSTALL SLEEP ********************
+Type these 3 commands
+
+npm install --global node-gyp
+npm --add-python-to-path='true' --debug install --global windows-build-tools
+npm install --global --production windows-build-tools
 
 ```
 cd steam-trade-farm
