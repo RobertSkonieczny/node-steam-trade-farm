@@ -93,7 +93,10 @@ mainClient.on('webSession', function(sessionID, cookies) {
          } // Wants to find a case typically around .03 cents. Don't want to use an expensive item.
          firstOffer.setMessage(SECURITY_CODE.toString()); // Set a message, so no one can slip in a trade, and try to steal your items.
          firstOffer.send((err, status) => { // Send offer.
-            if (status == 'pending') { // Check if it needs to be confirmed.
+            if(err) {
+                console.log(err);
+            } else {
+                if (status == 'pending') { // Check if it needs to be confirmed.
                mainCommunity.acceptConfirmationForObject(config.accounts.account1.identity_secret, firstOffer.id, function(err) { // Try to accept Trade
                   if (err) { // Handle, any accepting errors.
                      console.log('Error accepting Trade.');
@@ -102,6 +105,7 @@ mainClient.on('webSession', function(sessionID, cookies) {
                      console.log('Trade offered. Counter is at : ' + counter);
                   }
                });
+            }
             }
          });
       });
