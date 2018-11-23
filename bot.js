@@ -6,12 +6,24 @@
  */
 
 // Apis
-var SteamUser = require('steam-user');
-var SteamCommunity = require('steamcommunity');
-var SteamTotp = require('steam-totp');
-var TradeOfferManager = require('steam-tradeoffer-manager'); // use require('steam-tradeoffer-manager') in production
-var fs = require('fs');
-var sleep = require('sleep');
+try{
+  var SteamUser = require('steam-user');
+  var SteamCommunity = require('steamcommunity');
+  var SteamTotp = require('steam-totp');
+  var TradeOfferManager = require('steam-tradeoffer-manager'); // use require('steam-tradeoffer-manager') in production
+  var fs = require('fs');
+} catch (er) {
+  console.log('Modules not installed, copy-paste this into command line');
+  console.log('npm i steam-user && npm i steamcommunity && npm i steam-totp && npm i steam-tradeoffer-manager && npm i fs');
+}
+var sleep_installed = false;
+try {
+  var sleep = require('sleep');
+  sleep_installed = true;
+} catch (er) {
+  console.log('Sleep module not found (not necessary), ignoring it')
+}
+
 // Clients
 var mainClient = new SteamUser();
 var botClient = new SteamUser();
@@ -37,7 +49,11 @@ var botCommunity = new SteamCommunity();
 var config = JSON.parse(fs.readFileSync('./config.json'));
 
 // Security Code
-const SECURITY_CODE = Math.floor((Math.random() * 99999) + 1);
+var SECURITY_CODE = "";
+var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+for (var i = 0; i < 5; i++)
+ SECURITY_CODE += chars.charAt(Math.floor(Math.random() * chars.length));
 
 
 var counter = 0;
@@ -75,22 +91,18 @@ mainClient.on('webSession', function(sessionID, cookies) {
          process.exit(1); // Exit, if we cannot connect, since we can't do anything.
          return;
       }
-      mainManager.getInventoryContents(730, 2, true, function(err, inv) { // Load Inventory
+      mainManager.getInventoryContents(753, 6, true, function(err, inv) { // Load Inventory
          if (err) { // Handle Error.
             console.log('Error, in loading our inventory.')
             return;
          }
+         if (inv.length == 0){
+           console.log('Inventory is empty, add some items(cheap ones, like trading cards or gems)')
+         }
          var firstOffer = mainManager.createOffer(config.accounts.account2.tradelink); // Intialize Trade Offer
-         for (var i = 0; i < inv.length; ++i) { // For a strange reason I couldn't pass this to a function. It would not work correctly
-            var itemname = inv[i].market_hash_name.toLowerCase();
-            if (itemname.includes('case')) {
-               console.log('The item in which we are using is a/an ' + itemname)
-               firstOffer.addMyItem(inv[i]);
-               break;
-            } else if (i == inv.length - 1) {
-               console.log('We could not find a case.');
-            }
-         } // Wants to find a case typically around .03 cents. Don't want to use an expensive item.
+         var itemname = inv[0].market_hash_name.toLowerCase();
+         console.log('The item in which we are using is a/an ' + itemname)
+         firstOffer.addMyItem(inv[0]);
          firstOffer.setMessage(SECURITY_CODE.toString()); // Set a message, so no one can slip in a trade, and try to steal your items.
          firstOffer.send((err, status) => { // Send offer.
             if (status == 'pending') { // Check if it needs to be confirmed.
@@ -121,7 +133,7 @@ mainManager.on('newOffer', function(offer) {
          var identity_secret = config.accounts.account1.identity_secret;
          console.log('Main Account, has accepted trade. Now sending it back.');
          var newOffer = mainManager.createOffer(config.accounts.account2.tradelink);
-         mainManager.getInventoryContents(730, 2, true, (err, inv) => {
+         mainManager.getInventoryContents(753, 6, true, (err, inv) => {
             if (err) {
                console.log('Error getting our inventory.');
                return;
@@ -170,13 +182,13 @@ botManager.on('newOffer', function(offer) {
    console.log('Second Account found an Offer!');
    if (offer.message.toString() == SECURITY_CODE.toString() && offer.itemsToGive.length == 0) {
       offer.accept(function(err) {
-         if(config.sleep_time > 0) {
+         if(sleep_installed) {
            sleep.sleep(config.sleep_time);
          }
          var identity_secret = config.accounts.account2.identity_secret;
          console.log('Second Account, has accepted trade. Now sending it back.');
          var newOffer = botManager.createOffer(config.accounts.account1.tradelink);
-         botManager.getInventoryContents(730, 2, true, (err, inv) => {
+         botManager.getInventoryContents(753, 6, true, (err, inv) => {
             if (err) {
                console.log('Error getting our inventory.');
                return;
