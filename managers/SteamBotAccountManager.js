@@ -13,7 +13,7 @@ class SteamBotAccountManager {
     }
 
     async getAndFetchInventory() {
-        await this._fetchInventory();
+        await this.#fetchInventory();
         return this.inventory;
     }
 
@@ -55,7 +55,7 @@ class SteamBotAccountManager {
                     this.sendTradeOffer(tradelink, message, steamInventoryItemList, maxRetries-1)
                 } else if (status == 'pending') {
                     this.printMessage('ABOUT TO CONFIRM THE CONFIRMATION');
-                    await this._acceptConfirmation(offer);
+                    await this.#acceptConfirmation(offer);
                     return resolve(1);
                 }
             });
@@ -83,7 +83,7 @@ class SteamBotAccountManager {
     /*
      * Private Function
      */
-    async _fetchInventory() {
+    async #fetchInventory() {
          this.inventory = await new Promise(async (resolve, reject) => {
              this.tradeOfferBot.getInventoryContents(GAME_CODE, 2, true, (err, inventory) => {
                  if (err) return reject(err);
@@ -92,7 +92,7 @@ class SteamBotAccountManager {
         });
     }
 
-    async _acceptConfirmation(offer) {
+    async #acceptConfirmation(offer) {
         return await new Promise(async (resolve, reject) => {
             this.community.acceptConfirmationForObject(this.credentials.getIdentitySecret(), offer.id, (err) => {
                 if (err) {
