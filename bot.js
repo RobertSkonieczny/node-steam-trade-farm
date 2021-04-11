@@ -103,7 +103,6 @@ account1.getTradeOfferBot().on('newOffer', async (offerResponse) => {
       account1.printMessage('Sending the offer with a ' + newItem.getName());
       await account1.sendTradeOffer(account2Credentials.getTradelink(), SECURITY_CODE.toString(), [newItem], 3);
 
-
    }
 
 });
