@@ -1,22 +1,34 @@
-/*
- * Written by Robbie Skonieczny
- * Any question send to me via steam. www.steamcommunity.com/id/koncealedcsgo
- * Any issues make an issue on github.
- * Github.com/Koncealed/node-steam-trade-farm
- */
+const SteamUser = require('steam-user');
+const SteamCommunity = require('steamcommunity');
+const SteamTotp = require('steam-totp');
 
-// Apis
-var SteamUser = require('steam-user');
-var SteamCommunity = require('steamcommunity');
-var SteamTotp = require('steam-totp');
-var TradeOfferManager = require('steam-tradeoffer-manager'); // use require('steam-tradeoffer-manager') in production
-var fs = require('fs');
-var sleep = require('sleep');
-// Clients
-var mainClient = new SteamUser();
-var botClient = new SteamUser();
+const SteamBotAccountManager = require('./managers/SteamBotAccountManager.js');
+const SteamAccountCredentials = require('./utils/SteamAccountCredentials.js');
+const SteamTradeOffer = require('./response_models/SteamTradeOffer.js');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+var config = require('./config.js');
 
-// Managers
+const mainClient = new SteamUser();
+const botClient = new SteamUser();
+
+const account1Credentials = new SteamAccountCredentials(config.account1.identity_secret, 
+   config.account1.shared_secret, 
+   config.account1.username, 
+   config.account1.password,
+   config.account1.tradelink
+ );
+
+const account2Credentials = new SteamAccountCredentials(config.account2.identity_secret, 
+   config.account2.shared_secret, 
+   config.account2.username, 
+   config.account2.password,
+   config.account2.tradelink
+ );
+
+
+var mainCommunity = new SteamCommunity();
+var botCommunity = new SteamCommunity();
+
 var mainManager = new TradeOfferManager({
    "steam": mainClient, // Polling every 30 seconds is fine since we get notifications from Steam
    "domain": "example.com", // Our domain is example.com
@@ -29,184 +41,84 @@ var botManager = new TradeOfferManager({
    "language": "en" // We want English item descriptions
 });
 
-// Communities
-var mainCommunity = new SteamCommunity();
-var botCommunity = new SteamCommunity();
-
-// Config
-var config = JSON.parse(fs.readFileSync('./config.json'));
-
-// Security Code
 const SECURITY_CODE = Math.floor((Math.random() * 99999) + 1);
 
+var account1 = new SteamBotAccountManager(mainClient, mainCommunity, mainManager, account1Credentials);
+var account2 = new SteamBotAccountManager(botClient, botCommunity, botManager, account2Credentials);
 
-var counter = 0;
-// Log On Options
-var mainLogonOptions = {
-   "accountName": config.accounts.account1.username,
-   "password": config.accounts.account1.password,
-   "twoFactorCode": SteamTotp.getAuthCode(config.accounts.account1.shared_secret)
-};
-var botLogonOptions = {
-   "accountName": config.accounts.account2.username,
-   "password": config.accounts.account2.password,
-   "twoFactorCode": SteamTotp.getAuthCode(config.accounts.account2.shared_secret)
-};
-
-// Logging in...
-mainClient.logOn(mainLogonOptions);
-botClient.logOn(botLogonOptions);
-
-
-/*
- *
- * Main Client Events!
- *
- */
-mainClient.on('loggedOn', () => {
-   console.log('Main Client Logged In!');
-});
-
-
-mainClient.on('webSession', function(sessionID, cookies) {
-   mainManager.setCookies(cookies, function(err) {
-      if (err) { // Handle Error.
-         console.log(err);
-         process.exit(1); // Exit, if we cannot connect, since we can't do anything.
-         return;
-      }
-      mainManager.getInventoryContents(730, 2, true, function(err, inv) { // Load Inventory
-         if (err) { // Handle Error.
-            console.log('Error, in loading our inventory.')
-            return;
-         }
-         var firstOffer = mainManager.createOffer(config.accounts.account2.tradelink); // Intialize Trade Offer
-         for (var i = 0; i < inv.length; ++i) { // For a strange reason I couldn't pass this to a function. It would not work correctly
-            var itemname = inv[i].market_hash_name.toLowerCase();
-            if (itemname.includes('case')) {
-               console.log('The item in which we are using is a/an ' + itemname)
-               firstOffer.addMyItem(inv[i]);
-               break;
-            } else if (i == inv.length - 1) {
-               console.log('We could not find a case.');
-            }
-         } // Wants to find a case typically around .03 cents. Don't want to use an expensive item.
-         firstOffer.setMessage(SECURITY_CODE.toString()); // Set a message, so no one can slip in a trade, and try to steal your items.
-         firstOffer.send((err, status) => { // Send offer.
-            if (status == 'pending') { // Check if it needs to be confirmed.
-               mainCommunity.acceptConfirmationForObject(config.accounts.account1.identity_secret, firstOffer.id, function(err) { // Try to accept Trade
-                  if (err) { // Handle, any accepting errors.
-                     console.log('Error accepting Trade.');
-                     return;
-                  } else { // It worked fine, Now the farm begins.
-                     console.log('Trade offered. Counter is at : ' + counter);
-                  }
-               });
-            }
-         });
-      });
+try {
+   account1.getClient().logOn({
+      "accountName": account1Credentials.getUsername(),
+      "password": account1Credentials.getPassword(),
+      "twoFactorCode": SteamTotp.generateAuthCode(account1Credentials.getSharedSecret())
    });
-   // Set Cookies.
-   mainCommunity.setCookies(cookies);
+
+   account2.getClient().logOn({
+      "accountName": account2Credentials.getUsername(),
+      "password": account2Credentials.getPassword(),
+      "twoFactorCode": SteamTotp.generateAuthCode(account2Credentials.getSharedSecret())
+   }); 
+} catch {
+   console.log('Something went wrong with the signon process. If a steam guard message appeared try again in 1 minute If not ' +
+      'Your username, password, shared secret, or identity secret is incorrect and you need to update it in your config file (Please check for both account1 and account2)'
+   )
+}
+
+
+account1.getClient().on('loggedOn', async () => {
+   await account1.printMessage('Logged in!');
 });
 
-mainManager.on('pollData', (pollData) => {
-   fs.writeFile('polldata.json', JSON.stringify(pollData), function() {});
+account2.getClient().on('loggedOn', async () => {
+   await account2.printMessage('Logged in!');
 });
 
-mainManager.on('newOffer', function(offer) {
-   if (offer.message.toString() == SECURITY_CODE.toString() && offer.itemsToGive.length == 0) {
-      console.log('Found our trade. #' + ++counter);
-      offer.accept(function(err) {
-         var identity_secret = config.accounts.account1.identity_secret;
-         console.log('Main Account, has accepted trade. Now sending it back.');
-         var newOffer = mainManager.createOffer(config.accounts.account2.tradelink);
-         mainManager.getInventoryContents(730, 2, true, (err, inv) => {
-            if (err) {
-               console.log('Error getting our inventory.');
-               return;
-            } else {
-               newOffer.addMyItem(inv[0]);
-               newOffer.setMessage(SECURITY_CODE.toString());
-               newOffer.send((err, status) => {
-                  if (err) {
-                    console.log(err);
-                     console.log('Error, sending send back trade.');
-                     return;
-                  } else {
-                     mainCommunity.acceptConfirmationForObject(config.accounts.account1.identity_secret, newOffer.id, () => {
-                        console.log('Trade sent back!');
-                     })
-                  }
-               })
-            }
-         });
-      });
-   } else {
-      console.log('Ignorning trade.');
+account2.getClient().on('webSession', async function(sessionID, cookies) {
+   account2.getTradeOfferBot().setCookies(cookies);
+   await account2.getSteamCommunity().setCookies(cookies);
+});
+
+account1.getClient().on('webSession', async function(sessionID, cookies) {
+   account1.getTradeOfferBot().setCookies(cookies);
+   await account1.getSteamCommunity().setCookies(cookies);
+   // Get the Item we want to trade.
+   var targetItem = await account1.getFirstItemInInventory();
+   
+   // Log the item we will be sending/receiving
+   account1.printMessage("The item in which we are using is/an " + targetItem.getName());
+
+   // Send the trade offer.
+   await account1.sendTradeOffer(account2Credentials.getTradelink(), SECURITY_CODE.toString(), [targetItem], 3);
+});
+
+account1.getTradeOfferBot().on('newOffer', async (offerResponse) => {
+   account1.printMessage('RECEIVED TRADE OFFER');
+   var offer = new SteamTradeOffer(offerResponse, SECURITY_CODE);
+   if (offer.isSafeTrade()) {
+      account1.printMessage('Confirmed this is a safe trade, accepting the offer.'); 
+      await account1.acceptIncomingSafeTradeOffer(offerResponse);
+   
+      var newItem = await account1.getFirstItemInInventory();
+
+      account1.printMessage('Sending the offer with a ' + newItem.getName());
+      await account1.sendTradeOffer(account2Credentials.getTradelink(), SECURITY_CODE.toString(), [newItem], 3);
+
+
    }
+
 });
 
-/*
- *
- * Second Account Events!
- *
- */
-botClient.on('loggedOn', () => {
-   console.log('Bot Client Logged In!');
-});
+account2.getTradeOfferBot().on('newOffer', async (offerResponse) => {
+   account2.printMessage('RECEIVED TRADE OFFER');
+   var offer = new SteamTradeOffer(offerResponse, SECURITY_CODE);
+   if (offer.isSafeTrade()) {
+      account2.printMessage('Confirmed this is a safe trade, accepting the offer.'); 
+      await account2.acceptIncomingSafeTradeOffer(offerResponse);
 
-botClient.on('webSession', function(sessionID, cookies) {
-   botManager.setCookies(cookies, function(err) {
-      if (err) {
-         return;
-      }
-   });
-   botCommunity.setCookies(cookies);
-});
+      var newItem = await account2.getFirstItemInInventory();
 
-botManager.on('newOffer', function(offer) {
-   console.log('Trade #' + ++counter)
-   console.log('Second Account found an Offer!');
-   if (offer.message.toString() == SECURITY_CODE.toString() && offer.itemsToGive.length == 0) {
-      offer.accept(function(err) {
-         if(config.sleep_time > 0) {
-           sleep.sleep(config.sleep_time);
-         }
-         var identity_secret = config.accounts.account2.identity_secret;
-         console.log('Second Account, has accepted trade. Now sending it back.');
-         var newOffer = botManager.createOffer(config.accounts.account1.tradelink);
-         botManager.getInventoryContents(730, 2, true, (err, inv) => {
-            if (err) {
-               console.log('Error getting our inventory.');
-               return;
-            } else {
-               newOffer.addMyItem(inv[0]);
-               newOffer.setMessage(SECURITY_CODE.toString());
-               newOffer.send((err, status) => {
-                  if (err) {
-                    console.log(err);
-                     console.log('Error, sending send back trade.');
-                     return;
-                  } else {
-                     botCommunity.acceptConfirmationForObject(config.accounts.account2.identity_secret, newOffer.id, (err) => {
-                        if (err) {
-                           console.log('Could not accept trade.');
-                           return;
-                        } else {
-                           console.log('Trade sent back, Second account should recieve it in a few seconds.');
-                        }
-                     });
-                  }
-               });
-            }
-         });
-      });
-   } else {
-      console.log('We found a trade, that has not been made by bot.');
+      account1.printMessage('Sending the offer with a ' + newItem.getName());
+      await account2.sendTradeOffer(account1Credentials.getTradelink(), SECURITY_CODE.toString(), [newItem], 3);
+      
    }
-});
-
-botManager.on('pollData', function(pollData) {
-   fs.writeFile('polldata.json', JSON.stringify(pollData), function() {});
 });
