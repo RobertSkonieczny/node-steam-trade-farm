@@ -1,4 +1,4 @@
-export default class SteamTradeOffer {
+class SteamTradeOffer {
     constructor(incomingOffer, securityCode) {
         this.offer = incomingOffer;
         this.SECURITY_CODE = securityCode;
@@ -12,12 +12,10 @@ export default class SteamTradeOffer {
         return this.offer.itemsToGive;
     }
 
-    acceptTrade() {
-        
-    }
-
     isSafeTrade() {
-        return this.getMessage() == SECURITY_CODE.toString() && this.getItemsToGive().length == 0;
+        return this.getMessage() == this.SECURITY_CODE.toString() && this.getItemsToGive().length == 0;
     }
 
 }
+
+module.exports = SteamTradeOffer;

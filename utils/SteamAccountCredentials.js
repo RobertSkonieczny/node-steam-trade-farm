@@ -1,5 +1,4 @@
-export default class SteamAccountCredentials {
-
+class SteamAccountCredentials {
     constructor (identitySecret, sharedSecret, username, password, tradelink) {
         this.identitySecret = identitySecret
         this.sharedSecret = sharedSecret;
@@ -28,3 +27,5 @@ export default class SteamAccountCredentials {
         return this.tradelink;
     }
 }
+
+module.exports = SteamAccountCredentials;

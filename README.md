@@ -1,51 +1,27 @@
-# node-steam-trade-farm STILL UNDER TESTING!!!!
+# Node.Js Steam Trade Farm
 
-This is a Steam BOT, that takes 2 of your accounts, and makes trades in order to bump up 'Trades Done' on your Steam Profile.
+## Increase amount of "Trades Made"
 
+![Trades Made Example](https://gyazo.com/c90de4cbb61d720b458170475399728e.png)
+## Features
 
+- Increase amount of trades made.
+- Automatically send trades from your main account and bot account.
 
-## Getting Started
-For you to get started you need the following
-```
-NODEJS
-NPM Package Installer
-Your Identity Secret
-Your Shared Secret
-```
+## Installation Guide
 
-### Installing
+The steam trade farms requires [Node.js](https://nodejs.org/) v14+ to run.
 
-First off get your Identity Secret, and Shared Secret. Read this Thread here https://forums.backpack.tf/index.php?/topic/46354-guide-how-to-find-the-steam-identity_secret-on-an-android-phone/
-
-Fill in config.json
-
-After this open console, and write the following.
-```
-mkdir steam-trade-farm
-npm install steam-user
-npm install steam-tradeoffer-manager
-npm install steamcommunity
-npm install steam-totp
-npm install fs
-npm install sleep 
-
+- Download the code onto your computer.
+- Extract into a folder on your desktop.
+- Run below commands
+- Fill out the config.js file with all needed information (Google how to get identity secret/shared secret)
+- Run below commands
+```sh
+- npm install
+- node bot
 ```
 
-After this make way to this directory, and drop in the code.
-Once this is complete type the following into Command Prompt.
-
-***************** IF YOU GET AN ISSUE WITH NPM INSTALL SLEEP ********************
-
-Type these 3 commands
-
-npm install --global node-gyp
-
-npm --add-python-to-path='true' --debug install --global windows-build-tools
-
-npm install --global --production windows-build-tools
-
-
-```
-cd steam-trade-farm
-node bot
-```
+# Want to donate to developer?
+Donations are not required, feel free to buy me a coffee!
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/robbieskonieczny)
