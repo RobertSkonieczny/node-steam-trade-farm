@@ -14,14 +14,14 @@ The steam trade farms requires [Node.js](https://nodejs.org/) v14+ to run.
 
 - Download the code onto your computer.
 - Extract into a folder on your desktop.
-- Run below commands
 - Fill out the config.js file with all needed information (Google how to get identity secret/shared secret)
-- Run below commands
+- Run below commands in your terminal.
 ```sh
 - npm install
 - node bot
 ```
 
 # Want to donate to developer?
-Donations are not required, feel free to buy me a coffee!
+Donations are not required, but feel free to buy me a coffee!
+
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/robbieskonieczny)
