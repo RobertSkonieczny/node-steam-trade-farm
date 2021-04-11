@@ -75,7 +75,7 @@ class SteamBotAccountManager {
         });   
     }
 
-    async printMessage(message) {
+    printMessage(message) {
         console.log("[" + this.credentials.getUsername() + "] " + message);
     }
 
