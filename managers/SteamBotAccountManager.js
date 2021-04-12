@@ -51,7 +51,11 @@ class SteamBotAccountManager {
                 if (err) {
                     // Servers are non-consistant. Some trade offers can fail even though nothing is wrong with the trade offer.
                     // So we cna use simple recursion to try to resend the offer. It will retry N amount of times before fully crashing.
-                    if (maxRetries == 0) return reject(err);
+                    if (maxRetries == 0) {
+                        this.printMessage('Error in the sendTradeOffer Function');
+                        this.printMessage(err);
+                        return reject(err)
+                    }
                     this.sendTradeOffer(tradelink, message, steamInventoryItemList, maxRetries-1)
                 } else if (status == 'pending') {
                     this.printMessage('ABOUT TO CONFIRM THE CONFIRMATION');
@@ -66,6 +70,8 @@ class SteamBotAccountManager {
         return new Promise(async (resolve, reject) => {
             offer.accept((acceptanceErr) => {
                 if (acceptanceErr) {
+                    this.printMessage('Error in acceptIncomingSafeTradeOffer');
+                    this.printMessage(acceptanceErr);
                     return reject(acceptanceErr);
                 } else {
                     this.printMessage('Accepted trade');
@@ -86,7 +92,11 @@ class SteamBotAccountManager {
     async #fetchInventory() {
          this.inventory = await new Promise(async (resolve, reject) => {
              this.tradeOfferBot.getInventoryContents(GAME_CODE, 2, true, (err, inventory) => {
-                 if (err) return reject(err);
+                 if (err) {
+                     this.printMessage('Error in fetchInventory');
+                     this.printMessage(err);
+                     return reject(err)
+                    }
                  return resolve(inventory.map(item => new SteamInventoryItem(item)));
             });
         });
@@ -95,7 +105,10 @@ class SteamBotAccountManager {
     async #acceptConfirmation(offer) {
         return await new Promise(async (resolve, reject) => {
             this.community.acceptConfirmationForObject(this.credentials.getIdentitySecret(), offer.id, (err) => {
+                this.printMessage(err);
                 if (err) {
+                    this.printMessage('Error in acceptConfirmation');
+                    this.printMessage(err);
                     return reject(err);
                 } else {
                     return resolve(1);
