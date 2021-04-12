@@ -29,6 +29,8 @@ const account2Credentials = new SteamAccountCredentials(config.account2.identity
 var mainCommunity = new SteamCommunity();
 var botCommunity = new SteamCommunity();
 
+const MAX_RETRIES = 3;
+
 var mainManager = new TradeOfferManager({
    "steam": mainClient, // Polling every 30 seconds is fine since we get notifications from Steam
    "domain": "example.com", // Our domain is example.com
@@ -88,7 +90,7 @@ account1.getClient().on('webSession', async function(sessionID, cookies) {
    account1.printMessage("The item in which we are using is/an " + targetItem.getName());
 
    // Send the trade offer.
-   await account1.sendTradeOffer(account2Credentials.getTradelink(), SECURITY_CODE.toString(), [targetItem], 3);
+   await account1.sendTradeOffer(account2Credentials.getTradelink(), SECURITY_CODE.toString(), [targetItem], MAX_RETRIES);
 });
 
 account1.getTradeOfferBot().on('newOffer', async (offerResponse) => {
@@ -101,8 +103,10 @@ account1.getTradeOfferBot().on('newOffer', async (offerResponse) => {
       var newItem = await account1.getFirstItemInInventory();
 
       account1.printMessage('Sending the offer with a ' + newItem.getName());
-      await account1.sendTradeOffer(account2Credentials.getTradelink(), SECURITY_CODE.toString(), [newItem], 3);
+      await account1.sendTradeOffer(account2Credentials.getTradelink(), SECURITY_CODE.toString(), [newItem], MAX_RETRIES);
 
+   } else {
+      account2.printMessage('Found unsafe trade');
    }
 
 });
@@ -117,7 +121,8 @@ account2.getTradeOfferBot().on('newOffer', async (offerResponse) => {
       var newItem = await account2.getFirstItemInInventory();
 
       account1.printMessage('Sending the offer with a ' + newItem.getName());
-      await account2.sendTradeOffer(account1Credentials.getTradelink(), SECURITY_CODE.toString(), [newItem], 3);
-      
+      await account2.sendTradeOffer(account1Credentials.getTradelink(), SECURITY_CODE.toString(), [newItem], MAX_RETRIES);
+   } else {
+      account2.printMessage('Found unsafe trade');
    }
 });
