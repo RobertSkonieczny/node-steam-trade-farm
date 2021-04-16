@@ -26,7 +26,7 @@ The steam trade farms requires [Node.js](https://nodejs.org/) v14+ to run.
 - node bot
 ```
 
-# Want to donate to developer?
+# Want to donate to the developer?
 Donations are not required, but feel free to buy me a coffee!
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/robbieskonieczny)
