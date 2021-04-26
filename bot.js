@@ -67,12 +67,12 @@ try {
 }
 
 
-account1.getClient().on('loggedOn', async () => {
-   await account1.printMessage('Logged in!');
+account1.getClient().on('loggedOn', () => {
+   account1.printMessage('Logged in!');
 });
 
-account2.getClient().on('loggedOn', async () => {
-   await account2.printMessage('Logged in!');
+account2.getClient().on('loggedOn', () => {
+   account2.printMessage('Logged in!');
 });
 
 account2.getClient().on('webSession', async function(sessionID, cookies) {
@@ -98,7 +98,7 @@ account1.getTradeOfferBot().on('newOffer', async (offerResponse) => {
    var offer = new SteamTradeOffer(offerResponse, SECURITY_CODE);
    if (offer.isSafeTrade()) {
       account1.printMessage('Confirmed this is a safe trade, accepting the offer.'); 
-      await account1.acceptIncomingSafeTradeOffer(offerResponse);
+      await account1.acceptIncomingSafeTradeOffer(offerResponse,MAX_RETRIES);
    
       var newItem = await account1.getFirstItemInInventory();
 
@@ -116,7 +116,7 @@ account2.getTradeOfferBot().on('newOffer', async (offerResponse) => {
    var offer = new SteamTradeOffer(offerResponse, SECURITY_CODE);
    if (offer.isSafeTrade()) {
       account2.printMessage('Confirmed this is a safe trade, accepting the offer.'); 
-      await account2.acceptIncomingSafeTradeOffer(offerResponse);
+      await account2.acceptIncomingSafeTradeOffer(offerResponse,MAX_RETRIES);
 
       var newItem = await account2.getFirstItemInInventory();
 

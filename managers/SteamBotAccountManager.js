@@ -58,7 +58,6 @@ class SteamBotAccountManager {
                     }
                     this.sendTradeOffer(tradelink, message, steamInventoryItemList, maxRetries-1)
                 } else if (status == 'pending') {
-                    this.printMessage('ABOUT TO CONFIRM THE CONFIRMATION');
                     await this.#acceptConfirmation(offer);
                     return resolve(1);
                 }
@@ -66,13 +65,16 @@ class SteamBotAccountManager {
         });
     }
 
-    async acceptIncomingSafeTradeOffer(offer) {
+    async acceptIncomingSafeTradeOffer(offer, maxRetries) {
         return new Promise(async (resolve, reject) => {
             offer.accept((acceptanceErr) => {
                 if (acceptanceErr) {
-                    this.printMessage('Error in acceptIncomingSafeTradeOffer');
-                    this.printMessage(acceptanceErr);
-                    return reject(acceptanceErr);
+                    if (maxRetries == 0) {
+                        this.printMessage('Error in the sendTradeOffer Function');
+                        this.printMessage(acceptanceErr);
+                        return reject(acceptanceErr)
+                    }
+                    this.acceptIncomingSafeTradeOffer(offer,maxRetries-1);
                 } else {
                     this.printMessage('Accepted trade');
                     return resolve(1);
