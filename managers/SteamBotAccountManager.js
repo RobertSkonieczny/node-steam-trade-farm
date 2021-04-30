@@ -51,7 +51,7 @@ class SteamBotAccountManager {
                 if (err) {
                     // Servers are non-consistant. Some trade offers can fail even though nothing is wrong with the trade offer.
                     // So we cna use simple recursion to try to resend the offer. It will retry N amount of times before fully crashing.
-                    if (maxRetries == 0) {
+                    if (maxRetries <= 0) {
                         this.printMessage('Error in the sendTradeOffer Function');
                         this.printMessage(err);
                         return reject(err)
@@ -69,7 +69,7 @@ class SteamBotAccountManager {
         return new Promise(async (resolve, reject) => {
             offer.accept((acceptanceErr) => {
                 if (acceptanceErr) {
-                    if (maxRetries == 0) {
+                    if (maxRetries <= 0) {
                         this.printMessage('Error in the sendTradeOffer Function');
                         this.printMessage(acceptanceErr);
                         return reject(acceptanceErr)
