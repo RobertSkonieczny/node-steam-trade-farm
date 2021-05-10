@@ -1,5 +1,4 @@
 const SteamInventoryItem = require('../response_models/SteamInventoryItem.js');
-var sleep = require('system-sleep');
 
 const GAME_CODE = require('../config.js').gameCode;
 
